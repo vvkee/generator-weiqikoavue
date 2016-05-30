@@ -80,6 +80,7 @@ export default (_opt) => {
 
     gulp.task('client_watch', () => {
         gulp.watch(client + '/static/**/*', ['copy_static'])
+        gulp.watch(client + '/style/**/*', ['webpack_dev'])
         gulp.watch(client + '/*.html', ['webpack_dev'])
         gulp.watch(client + '/**/*.js', ['webpack_dev'])
         gulp.watch(client + '/**/*.vue', ['webpack_dev'])

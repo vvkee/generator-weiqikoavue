@@ -165,7 +165,10 @@ module.exports = (options) => {
             loaders: ['vue-style-loader', 'less-loader',
                 'css-loader',
                 'babel?presets[]=es2015,presets[]=stage-3'
-            ]
+            ],
+            autoprefixer: {
+                browsers: ['Firefox >= 2', 'Safari >= 3', 'Explorer >= 8', 'Chrome >= 4', "ChromeAndroid >= 2.0"]
+            }
         },
         eslint: {
             formatter: require('eslint-friendly-formatter')

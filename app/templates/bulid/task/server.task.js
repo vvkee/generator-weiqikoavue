@@ -6,6 +6,8 @@ import runSequence from 'gulp-sequence'
 import eslint from 'gulp-eslint'
 import eslint_formatter from 'eslint-friendly-formatter'
 
+let app = null;
+
 export default (_opt) => {
     let gulp = _opt.gulp
 
@@ -57,12 +59,12 @@ export default (_opt) => {
      * @return {[type]}          [description]
      */
     gulp.task('server', () => {
-        return nodemon({
+        app = nodemon({
             script: rootPath + '/bin/www',
-            ignore: ['src/**', './*'],
             execMap: {
                 "js": "node"
             },
+            watch: [assets],
             env: {
                 'NODE_ENV': 'development'
             }
@@ -72,7 +74,10 @@ export default (_opt) => {
         }).on('start', function() {
             gutil.log(gutil.colors.yellow(
                 'http://localhost:3377'));
+        }).on('message', function() {
+            console.log('_-------------------------------------------')
         })
+        return app
     })
 
     /**
@@ -82,6 +87,6 @@ export default (_opt) => {
      * @return {[type]}                [description]
      */
     gulp.task('server_watch', () => {
-        gulp.watch(server + '/**/*', ['server_eslint', 'server_copy'])
+        let watcher = gulp.watch(server + '/**/*', ['server_eslint', 'server_copy'])
     })
 }
