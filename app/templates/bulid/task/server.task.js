@@ -35,20 +35,10 @@ export default (_opt) => {
      * @param  {[type]} (               [description]
      * @return {[type]}                 [description]
      */
-    gulp.task('server_eslint', () => {
+    gulp.task('server_base', () => {
         return gulp.src(server + '/**/*.js')
             .pipe(eslint())
             .pipe(eslint.format(eslint_formatter))
-    })
-
-    /**
-     * server复制
-     * @param  {[type]} 'server_copy' [description]
-     * @param  {[type]} (             [description]
-     * @return {[type]}               [description]
-     */
-    gulp.task('server_copy', () => {
-        return gulp.src(server + '/**/*.js')
             .pipe(gulp.dest(assets))
     })
 
@@ -64,18 +54,20 @@ export default (_opt) => {
             execMap: {
                 "js": "node"
             },
-            watch: [assets],
+            watch: [
+                assets + '/app.js',
+                assets + '/config',
+                assets + '/controller',
+                assets + '/middleware',
+                assets + '/service',
+                assets + '/util'
+            ],
             env: {
                 'NODE_ENV': 'development'
             }
-        }).on('restart', function() {
-            gutil.log(gutil.colors.yellow(
-                'http://localhost:3377'));
         }).on('start', function() {
             gutil.log(gutil.colors.yellow(
                 'http://localhost:3377'));
-        }).on('message', function() {
-            console.log('_-------------------------------------------')
         })
         return app
     })
@@ -87,6 +79,6 @@ export default (_opt) => {
      * @return {[type]}                [description]
      */
     gulp.task('server_watch', () => {
-        let watcher = gulp.watch(server + '/**/*', ['server_eslint', 'server_copy'])
+        let watcher = gulp.watch(server + '/**/*', ['server_base'])
     })
 }

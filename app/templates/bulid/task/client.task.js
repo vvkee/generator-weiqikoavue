@@ -60,29 +60,28 @@ export default (_opt) => {
      * @return {[type]}              [description]
      */
     gulp.task('client_del', () => {
-        del([assets + '/public/img/**/*'])
+        del([assets + '/public/imgages/**/*'])
         del([assets + '/public/css/**/*'])
         del([assets + '/public/js/**/*'])
-        del([assets + '/public/font/**/*'])
+        del([assets + '/public/fonts/**/*'])
+        del([assets + '/public/static/**/*'])
+        del([assets + '/public/vendor/**/*'])
         del([assets + '/views/pages/**/*'])
     })
 
     // html任务
-    gulp.task('copy_static', () => {
-        return gulp.src(client + '/static/**/*')
+    gulp.task('copy', () => {
+        return gulp.src(client + '/*(static|vendor)/**/*')
             .pipe(rename((file_path) => {
                 // file_path.dirname = file_path.dirname.replace(
                 //     /\/static\/image/, '');
             }))
-            .pipe(gulp.dest(assets + '/public/static'))
+            .pipe(gulp.dest(assets + '/public/'))
     })
 
-
     gulp.task('client_watch', () => {
-        gulp.watch(client + '/static/**/*', ['copy_static'])
-        gulp.watch(client + '/style/**/*', ['webpack_dev'])
-        gulp.watch(client + '/*.html', ['webpack_dev'])
-        gulp.watch(client + '/**/*.js', ['webpack_dev'])
-        gulp.watch(client + '/**/*.vue', ['webpack_dev'])
+        gulp.watch(client + '/?(static|vendor)/**/*', ['copy'])
+        // gulp.watch(client + '/*.?(js|vue|html)', ['webpack_dev'])
+        // gulp.watch(client + '/!(static|vendor)/**/*.**', ['webpack_dev'])
     })
 }

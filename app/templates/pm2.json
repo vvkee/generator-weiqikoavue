@@ -1,6 +1,6 @@
 {
   "apps": [{
-    "name": "koaVue",
+    "name": "<%= name %>",
     "script": "bin/www",
     "cwd": "<%= cwd %>",
     "max_memory_restart": "8G",

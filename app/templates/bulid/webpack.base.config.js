@@ -9,8 +9,7 @@ import glob from 'glob'
 // webpack plugins
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-
-let vue = require('vue')
+import QiniuPlugin from 'qiniu-webpack-plugin'
 
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin
 const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin
@@ -20,6 +19,7 @@ const rootPath = path.join(process.cwd(), '..')
 const srcDir = path.resolve(rootPath, path.join(rootPath, '/src/client'))
 const nodeModPath = path.resolve(rootPath, path.join(rootPath, '/node_modules'))
 const assets = path.join(rootPath, '/assets/')
+const view = path.join(rootPath, '/assets/views/pages/index.html')
 
 // 插件列表
 let plugins = []
@@ -28,7 +28,7 @@ module.exports = (options) => {
 
     // 声明变量
     let debug = options.debug !== undefined ? options.debug : true,
-        publicPath = '',
+        publicPath = '/',
         cssLoader,
         lessLoader
 
@@ -36,14 +36,23 @@ module.exports = (options) => {
         // 开发阶段，css直接内嵌
         cssLoader = 'style!css'
         lessLoader = 'style!css!less'
-
+        plugins.push(new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: '"development"'
+            }
+        }))
+        // 热加载
+        plugins.push(new webpack.optimize.OccurenceOrderPlugin())
+        plugins.push(new webpack.HotModuleReplacementPlugin())
+        plugins.push(new webpack.NoErrorsPlugin())
         // html
         plugins.push(new HtmlWebpackPlugin({
-            filename: '../views/pages/index.html',
+            filename: 'index.html',
             template: srcDir + '/index.html',
             inject: 'body'
         }))
     } else {
+        publicPath = "http://o8uy2o1i5.bkt.clouddn.com/static/"
         // 编译阶段，css分离出来单独引入
         cssLoader = ExtractTextPlugin.extract('style', 'css?minimize') // enable minimize
         lessLoader = ExtractTextPlugin.extract('style', 'css?minimize','less')
@@ -94,15 +103,35 @@ module.exports = (options) => {
                 }
             })
         )
+        var CompressionWebpackPlugin = require('compression-webpack-plugin')
+
+        plugins.push(
+            new CompressionWebpackPlugin({
+                asset: '[path].gz[query]',
+                algorithm: 'gzip',
+                test: /\.js$|\.html$|\.css$/,
+                threshold: 10240,
+                minRatio: 0.8
+            })
+        )
+        // 七牛
+        plugins.push(
+            new QiniuPlugin({
+                ACCESS_KEY: 'ZdTWWI6pGAuZmEi_7stJrAFSL64YGFOjhpZPezIb',
+                SECRET_KEY: 'LWubCkQLzScOW_IrAQN2nks-on_7aQm8E7CkKtG7',
+                bucket: 'cmsstatic',
+                path: 'static'
+            })
+        )
     }
     let config = {
-        entry: srcDir + '/main.js',
-        devtool: debug ? '#source-map' : false,
+        entry: debug ? { app: ['./dev_client.js', srcDir + '/main.js']} : srcDir + '/main.js',
+        devtool: debug ? '#eval-source-map' : false,
         output: {
             path: path.resolve(assets + 'public'),
-            filename: debug ? 'js/[name].js' : 'js/[name].[chunkhash:8].min.js',
-            chunkFilename: debug ? 'js/chunk.[chunkhash:8].js' : 'js/chunk.[chunkhash:8].min.js',
-            hotUpdateChunkFilename: debug ? 'js/[id].js' : 'js/[id].[chunkhash:8].min.js',
+            filename: debug ? 'js/[name].js' : 'js/[name].[hash].min.js',
+            chunkFilename: debug ? 'js/chunk.js' : 'js/chunk.[hash.]min.js',
+            hotUpdateChunkFilename: debug ? 'js/[id].js' : 'js/[id].[hash].min.js',
             publicPath: publicPath
         },
         resolve: {
@@ -134,10 +163,18 @@ module.exports = (options) => {
                     // url-loader更好用，小于10KB的图片会自动转成dataUrl，
                     // 否则则调用file-loader，参数直接传入
                     'url?limit=10000&name=img/[hash:8].[name].[ext]',
-                ]
+                ],
+                query: {
+                    limit: 10000,
+                    name: 'images/[hash:7].[name].[ext]'
+                }
             }, {
-                test: /\.(woff|eot|ttf)$/i,
-                loader: 'url?limit=10000&name=fonts/[hash:8].[name].[ext]'
+                test: /\.(svg|woff2?|eot|ttf|otf)(\?.*)?$/,
+                loader: 'url',
+                query: {
+                    limit: 10000,
+                    name: 'fonts/[hash:7].[name].[ext]'
+                }
             }, {
                 test: /\.html$/,
                 loader: 'vue-html'
@@ -147,9 +184,6 @@ module.exports = (options) => {
             }, {
                 test: /\.less$/,
                 loader: lessLoader
-            }, {
-                test: /\.(woff|woff2|ttf|eot|svg|otf)(\?t=[0-9]*(\#[a-zA-Z]*)?)?$/,
-                loader: "file"
             }, {
                 test: /\.js$/,
                 exclude: /node_modules/,
@@ -177,17 +211,7 @@ module.exports = (options) => {
             new CommonsChunkPlugin({
                 name: 'vender'
             })
-        ].concat(plugins),
-        devServer: {
-            hot: true,
-            noInfo: false,
-            inline: true,
-            publicPath: publicPath,
-            stats: {
-                cached: false,
-                colors: true
-            }
-        }
+        ].concat(plugins)
     }
 
     return config
