@@ -151,7 +151,8 @@ module.exports = generators.Base.extend({
                 this.templatePath('pm2.json'),
                 this.destinationPath('pm2.json'),
                 {
-                    cwd: this.destinationPath(),
+                    name: this.options.dirname,
+                    cwd: this.destinationPath()
                 }
             )
         }
