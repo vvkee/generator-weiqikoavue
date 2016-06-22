@@ -1,6 +1,6 @@
 {
   "name": "generator-weiqikoavue",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,7 @@
   "author": "weizongqi",
   "license": "ISC",
   "dependencies": {
-    "yeoman-generator": "^0.22.5"
+    "yeoman-generator": "^0.22.6"
   },
   "files": [
     "generators/app",
